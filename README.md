@@ -1,1 +1,1 @@
-# distributed-systems-02
+# Distributed Systems – University Assignment
