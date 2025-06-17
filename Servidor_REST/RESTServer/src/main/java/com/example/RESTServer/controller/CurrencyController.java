@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.RESTServer.domain.entity.ExchangeHistoryEntity;
 import com.example.RESTServer.domain.request.ConvertCurrencyRequestDTO;
 import com.example.RESTServer.domain.response.CurrencyAmdorenAmountResponse;
 import com.example.RESTServer.domain.response.CurrencyAmdorenListResponse;
@@ -50,14 +51,21 @@ public class CurrencyController {
 		
 	}
 	
-	@PutMapping("update-reason-conversion")
-	public ResponseEntity<CurrencyAmdorenAmountResponse> updateReasonCurrency(@RequestBody ConvertCurrencyRequestDTO convertCurrencyRequestDTO) {
+	@PutMapping("update-reason-exchange")
+	public ResponseEntity<CurrencyAmdorenAmountResponse> updateExchange(@RequestBody ConvertCurrencyRequestDTO convertCurrencyRequestDTO) {
 		return ResponseEntity.ok().build();
 		
 	}
 	
-	@DeleteMapping("delete-conversion")
-	public ResponseEntity<CurrencyAmdorenAmountResponse> deleteConversion(@RequestParam(required = true) Integer id) {
+	@DeleteMapping("delete-exchange")
+	public ResponseEntity<CurrencyAmdorenAmountResponse> deleteExchange(@RequestParam(required = true) Integer idExchange) {
+
+		return ResponseEntity.ok().build();
+		
+	}
+	
+	@GetMapping("last-five-exchange-history")
+	public ResponseEntity<ExchangeHistoryEntity[]> getLastExchangeHistory(@RequestParam(defaultValue = "false") Boolean formatoXML) {
 
 		return ResponseEntity.ok().build();
 		

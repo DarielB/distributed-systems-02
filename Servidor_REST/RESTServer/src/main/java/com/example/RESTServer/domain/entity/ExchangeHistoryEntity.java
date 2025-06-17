@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import lombok.Getter;
 
 @Getter
-public class ConversionHistoryEntity {
+public class ExchangeHistoryEntity {
 
 	private Integer id;
 	private String to;
