@@ -1,4 +1,4 @@
-package com.example.RESTServer.entity;
+package com.example.RESTServer.domain.entity;
 
 import java.io.Serializable;
 
