@@ -5,7 +5,7 @@ import CurrencyForm from './components/CurrencyForm';
 import ResultDisplay from './components/ResultDisplay';
 import HistoryTable from './components/HistoryTable';
 
-import { fetchHistory, convertCurrency, deleteExchange } from './services/currencyService';
+import { fetchHistory, convertCurrency, deleteExchange, updateTimestamp } from './services/currencyService';
 
 function App() {
   const [from, setFrom] = useState('USD');
@@ -44,6 +44,16 @@ function App() {
     }
   };
 
+const handleSaveTimestamp = async (id, newTimestamp) => {
+  try {
+    await updateTimestamp(id, newTimestamp);
+    await loadHistory(); // recarrega o histórico atualizado do backend
+  } catch (err) {
+    setError('Erro ao atualizar data/hora.');
+  }
+};
+
+
   useEffect(() => {
     loadHistory();
   }, []);
@@ -62,7 +72,7 @@ function App() {
       />
       {error && <p className="error">{error}</p>}
       <ResultDisplay result={result} />
-      <HistoryTable history={history} onDelete={handleDelete} />
+      <HistoryTable history={history} onDelete={handleDelete} onSaveTimestamp={handleSaveTimestamp} />
     </div>
   );
 }

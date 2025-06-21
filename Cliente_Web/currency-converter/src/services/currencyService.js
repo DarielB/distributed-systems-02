@@ -21,3 +21,8 @@ export const deleteExchange = async (id) => {
     params: { idExchange: id }
   });
 };
+
+export const updateTimestamp = async (id, newTimestamp) => {
+  await axios.put(`${API_BASE}/update-timestamp?id=${id}&newTimestamp=${newTimestamp}`);
+};
+
