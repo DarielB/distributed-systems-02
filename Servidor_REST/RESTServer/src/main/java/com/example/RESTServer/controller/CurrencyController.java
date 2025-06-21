@@ -3,11 +3,13 @@ package com.example.RESTServer.controller;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +27,7 @@ import com.example.RESTServer.domain.response.CurrencyAmdorenAmountResponse;
 import com.example.RESTServer.domain.response.CurrencyAmdorenListResponse;
 import com.example.RESTServer.service.CurrencyService;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("v1/currency")
 public class CurrencyController {
@@ -84,12 +87,12 @@ public class CurrencyController {
         CurrencyEntity currency = currencyService.getCurrencyRate(request.getFrom(), request.getTo());
         double convertedAmount = request.getAmount() * currency.getBid();
 
-        history.add(new ExchangeHistoryEntity(
-                request.getFrom(),
-                request.getTo(),
-                request.getAmount(),
-                convertedAmount
-        ));
+		currencyService.saveToHistory(
+				request.getFrom(),
+				request.getTo(),
+				request.getAmount(),
+				convertedAmount
+		);
 
         return new ConvertCurrencyResponseDTO(
                 request.getFrom(),
@@ -99,9 +102,12 @@ public class CurrencyController {
         );
     }
 
-    @GetMapping("/history")
-    public List<ExchangeHistoryEntity> getHistory() {
-        return history;
+	@GetMapping("/history")
+    public List<ExchangeHistoryEntity> getAllHistory() {
+        return currencyService.getHistory();
     }
-
+	@GetMapping("/quote")
+	public Map<String, CurrencyEntity> getCurrencyQuotes(@RequestParam String pairs) throws IOException {
+    	return currencyService.getCurrencyQuotes(pairs);
+	}
 }

@@ -1,8 +1,10 @@
 package com.example.RESTServer.domain.request;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 public class ConvertCurrencyRequestDTO {
 	// private String to;
 	// private String from;
