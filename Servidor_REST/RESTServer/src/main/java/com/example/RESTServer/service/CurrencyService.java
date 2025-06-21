@@ -92,4 +92,9 @@ public class CurrencyService {
         return historyRepository.findAll();
     }
 
+    public void deleteFromHistory(Long idExchange) {
+    historyRepository.deleteById(idExchange);
+}
+
+
 }

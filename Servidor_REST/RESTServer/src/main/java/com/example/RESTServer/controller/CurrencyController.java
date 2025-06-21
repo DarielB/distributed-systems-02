@@ -110,4 +110,13 @@ public class CurrencyController {
 	public Map<String, CurrencyEntity> getCurrencyQuotes(@RequestParam String pairs) throws IOException {
     	return currencyService.getCurrencyQuotes(pairs);
 	}
+
+	@DeleteMapping("/delete-exchange")
+	public ResponseEntity<Void> deleteExchange(@RequestParam Long idExchange) {
+		currencyService.deleteFromHistory(idExchange);
+		return ResponseEntity.noContent().build(); // HTTP 204
+	}
+
+
+
 }
