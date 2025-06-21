@@ -24,6 +24,11 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 @Service
 public class CurrencyService {
@@ -93,8 +98,23 @@ public class CurrencyService {
     }
 
     public void deleteFromHistory(Long idExchange) {
-    historyRepository.deleteById(idExchange);
+        historyRepository.deleteById(idExchange);
 }
+
+    public boolean updateTimestamp(Long id, String newTimestampStr) {
+        Optional<ExchangeHistoryEntity> optionalEntry = historyRepository.findById(id);
+        if(optionalEntry.isPresent()) {
+            ExchangeHistoryEntity entry = optionalEntry.get();
+            LocalDateTime newTimestamp = LocalDateTime.parse(newTimestampStr, DateTimeFormatter.ISO_DATE_TIME);
+
+            entry.setTimestamp(newTimestamp);
+            historyRepository.save(entry);
+            return true;
+        }
+        return false;
+    }
+
+
 
 
 }

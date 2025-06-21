@@ -117,6 +117,20 @@ public class CurrencyController {
 		return ResponseEntity.noContent().build(); // HTTP 204
 	}
 
+	@PutMapping("/update-timestamp")
+	public ResponseEntity<Void> updateTimestamp(
+		@RequestParam Long id,
+		@RequestParam String newTimestamp
+	) {
+		boolean updated = currencyService.updateTimestamp(id, newTimestamp);
+		if(updated) {
+			return ResponseEntity.noContent().build();
+		} else {
+			return ResponseEntity.notFound().build();
+		}
+	}
+
+
 
 
 }
