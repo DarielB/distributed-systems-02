@@ -1,0 +1,64 @@
+.App {
+  font-family: 'Segoe UI', sans-serif;
+  padding: 2rem;
+  background-color: #f4f7fa;
+  color: #333;
+}
+
+h1, h2 {
+  text-align: center;
+  color: #2a659c;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+input, select {
+  padding: 0.5rem;
+  margin-left: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+button {
+  padding: 0.6rem 1.2rem;
+  background-color: #2a659c;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+button:hover {
+  background-color: #204d76;
+}
+
+.result {
+  margin-top: 1rem;
+  font-size: 1.2rem;
+  color: #1b4f72;
+  text-align: center;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5rem;
+}
+
+.history-table th, .history-table td {
+  border: 1px solid #ddd;
+  padding: 0.8rem;
+  text-align: center;
+}
+
+.history-table thead {
+  background-color: #2a659c;
+  color: white;
+}
+
+.history-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
