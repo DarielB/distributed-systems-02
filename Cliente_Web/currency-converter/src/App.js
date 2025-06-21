@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './styles/App.css';
 
 import CurrencyForm from './components/CurrencyForm';
 import ResultDisplay from './components/ResultDisplay';
 import HistoryTable from './components/HistoryTable';
-
+import FormatSelector from './components/FormatSelector';
 import { fetchHistory, convertCurrency, deleteExchange, updateTimestamp } from './services/currencyService';
 
 function App() {
@@ -14,19 +14,20 @@ function App() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [history, setHistory] = useState([]);
+  const [formato, setFormato] = React.useState('json');
 
-  const loadHistory = async () => {
+  const loadHistory = useCallback(async () => {
     try {
-      const data = await fetchHistory();
+      const data = await fetchHistory(formato);
       setHistory(data);
     } catch (err) {
       setError('Erro ao buscar o histórico.');
     }
-  };
+  }, [formato]);
 
-  const handleConvert = async () => {
+  const handleConvert = async (formatoSelecionado = 'json') => {
     try {
-      const res = await convertCurrency(from, to, amount);
+      const res = await convertCurrency(from, to, amount, formato);
       setResult(res);
       setError('');
       await loadHistory();
@@ -38,7 +39,7 @@ function App() {
   const handleDelete = async (id) => {
     try {
       await deleteExchange(id);
-      await loadHistory();
+      await loadHistory(formato);
     } catch (err) {
       setError('Erro ao excluir entrada.');
     }
@@ -47,20 +48,21 @@ function App() {
 const handleSaveTimestamp = async (id, newTimestamp) => {
   try {
     await updateTimestamp(id, newTimestamp);
-    await loadHistory(); // recarrega o histórico atualizado do backend
+    await loadHistory(formato); // recarrega o histórico atualizado do backend
   } catch (err) {
     setError('Erro ao atualizar data/hora.');
   }
 };
 
-
   useEffect(() => {
     loadHistory();
-  }, []);
+  }, [loadHistory]);
 
   return (
     <div className="App">
+      <center>
       <h1>Conversor de Moedas</h1>
+      <FormatSelector formato={formato} setFormato={setFormato} />
       <CurrencyForm
         from={from}
         to={to}
@@ -68,12 +70,14 @@ const handleSaveTimestamp = async (id, newTimestamp) => {
         setFrom={setFrom}
         setTo={setTo}
         setAmount={setAmount}
-        onConvert={handleConvert}
+        onConvert={() => handleConvert(formato)}
       />
       {error && <p className="error">{error}</p>}
       <ResultDisplay result={result} />
       <HistoryTable history={history} onDelete={handleDelete} onSaveTimestamp={handleSaveTimestamp} />
+      </center>
     </div>
+    
   );
 }
 

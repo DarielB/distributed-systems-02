@@ -93,12 +93,12 @@ const HistoryTable = ({ history, onDelete, onSaveTimestamp }) => {
                 {editId === entry.id ? (
                   <>
                     <button onClick={handleSaveClick}>Salvar</button>
-                    <button onClick={handleCancelClick}>Cancelar</button>
+                    <button className="cancel-button" onClick={handleCancelClick}>Cancelar</button>
                   </>
                 ) : (
                   <>
                     <button onClick={() => handleEditClick(entry)}>Editar</button>
-                    <button onClick={() => onDelete(entry.id)}>Excluir</button>
+                    <button className="delete-button" onClick={() => onDelete(entry.id)}>Excluir</button>
                   </>
                 )}
               </td>
