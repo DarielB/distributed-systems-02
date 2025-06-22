@@ -2,17 +2,11 @@ package com.example.RESTServer.service;
 
 import java.io.IOException;
 import java.util.List; 
-import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import com.example.RESTServer.domain.entity.CurrencyEntity;
 import com.example.RESTServer.domain.entity.ExchangeHistoryEntity;
-import com.example.RESTServer.domain.request.ConvertCurrencyRequestDTO;
-import com.example.RESTServer.domain.response.CurrencyAmdorenAmountResponse;
-import com.example.RESTServer.domain.response.CurrencyAmdorenListResponse;
 import com.example.RESTServer.repository.HistoryRepository;
 
 import okhttp3.OkHttpClient;
@@ -26,22 +20,30 @@ import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 @Service
+// Anotação que indica que esta classe é um serviço do Spring (componente de lógica de negócio)
 public class CurrencyService {
 
+    // Cliente HTTP usado para fazer chamadas à API externa
     private static final OkHttpClient client = new OkHttpClient();
-    private static final String BASE_URL = "https://economia.awesomeapi.com.br/json/"; // Verificar JSON e XML
+
+    // URL base da API de câmbio (AwesomeAPI)
+    private static final String BASE_URL = "https://economia.awesomeapi.com.br/json/";
+
+    // Repositório usado para acessar e manipular o banco de dados de histórico
     private final HistoryRepository historyRepository;
 
+    // Construtor com injeção do repositório de histórico
     public CurrencyService(HistoryRepository historyRepository) {
         this.historyRepository = historyRepository;
     }
 
-
+    /**
+     * Consulta a taxa de câmbio entre duas moedas usando a API externa.
+     * Exemplo de chamada: USD-BRL
+     */
     public CurrencyEntity getCurrencyRate(String from, String to) throws IOException {
         String url = BASE_URL + from + "-" + to;
 
@@ -59,48 +61,40 @@ public class CurrencyService {
 
             Gson gson = new Gson();
             Type type = new TypeToken<CurrencyEntity[]>() {}.getType();
+
+            // A API retorna um array, então pega o primeiro elemento
             CurrencyEntity[] result = gson.fromJson(responseBody, type);
 
             return result[0];
         }
     }
 
-    public Map<String, CurrencyEntity> getCurrencyQuotes(String pairs) throws IOException {
-        String url = BASE_URL + "last/" + pairs;
-
-        Request request = new Request.Builder()
-                .url(url)
-                .get()
-                .build();
-
-        try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new IOException("Erro ao consultar a API: " + response.code());
-            }
-
-            String responseBody = response.body().string();
-            Gson gson = new Gson();
-            Type type = new TypeToken<Map<String, CurrencyEntity>>() {}.getType();
-
-            return gson.fromJson(responseBody, type);
-        }
-    }
-    
-    // Método para salvar no histórico
+    /**
+     * Salva uma conversão no histórico local do banco de dados.
+     */
     public void saveToHistory(String from, String to, double amount, double convertedAmount) {
         ExchangeHistoryEntity entry = new ExchangeHistoryEntity(from, to, amount, convertedAmount);
         historyRepository.save(entry);
     }
 
-    // Método para recuperar histórico
+    /**
+     * Retorna todas as entradas do histórico de conversões salvas no banco.
+     */
     public List<ExchangeHistoryEntity> getHistory() {
         return historyRepository.findAll();
     }
 
+    /**
+     * Remove uma entrada específica do histórico com base no ID.
+     */
     public void deleteFromHistory(Long idExchange) {
         historyRepository.deleteById(idExchange);
-}
+    }
 
+    /**
+     * Atualiza o timestamp de uma entrada do histórico.
+     * Espera que o timestamp venha em formato ISO (ex: 2025-06-22T19:45:00).
+     */
     public boolean updateTimestamp(Long id, String newTimestampStr) {
         Optional<ExchangeHistoryEntity> optionalEntry = historyRepository.findById(id);
         if(optionalEntry.isPresent()) {
@@ -113,8 +107,5 @@ public class CurrencyService {
         }
         return false;
     }
-
-
-
-
 }
+

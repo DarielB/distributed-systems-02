@@ -38,23 +38,30 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 
 
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000") 
+// Permite que requisições do front-end (rodando em localhost:3000) acessem os endpoints deste controller
+
 @RestController
-@RequestMapping("v1/currency")
+@RequestMapping("v1/currency") 
+// Define que todos os endpoints desta classe estarão sob o caminho base /v1/currency
 public class CurrencyController {
 	
 	@Autowired
 	private CurrencyService currencyService;
-	
+	// Injeta a lógica de negócio responsável por conversões, histórico etc.
+
 @PostMapping(value = "/convert", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+// Endpoint POST para converter valores de uma moeda para outra
 public ResponseEntity<ConvertCurrencyResponseDTO> convertCurrency(
     @RequestBody ConvertCurrencyRequestDTO request,
     @RequestParam(name = "formato", required = false, defaultValue = "json") String formato
 ) throws IOException {
 
+    // Busca a taxa de câmbio entre as moedas
     CurrencyEntity currency = currencyService.getCurrencyRate(request.getFrom(), request.getTo());
     double convertedAmount = request.getAmount() * currency.getBid();
 
+    // Salva a conversão no histórico
     currencyService.saveToHistory(
         request.getFrom(),
         request.getTo(),
@@ -62,6 +69,7 @@ public ResponseEntity<ConvertCurrencyResponseDTO> convertCurrency(
         convertedAmount
     );
 
+    // Cria a resposta com os dados convertidos
     ConvertCurrencyResponseDTO response = new ConvertCurrencyResponseDTO(
         request.getFrom(),
         request.getTo(),
@@ -69,99 +77,103 @@ public ResponseEntity<ConvertCurrencyResponseDTO> convertCurrency(
         convertedAmount
     );
 
+    // Define o tipo de mídia a ser retornado (JSON ou XML)
     MediaType mediaType = formato.equalsIgnoreCase("xml") ?
         MediaType.APPLICATION_XML : MediaType.APPLICATION_JSON;
 
+    // Retorna a resposta com o conteúdo no formato desejado
     return ResponseEntity
         .ok()
         .contentType(mediaType)
         .body(response);
 }
 
-	@GetMapping(value = "/history", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
-	public ResponseEntity<List<ExchangeHistoryEntity>> getAllHistory(
-		@RequestParam(name = "formato", required = false, defaultValue = "json") String formato
-	) {
-		List<ExchangeHistoryEntity> history = currencyService.getHistory();
+@GetMapping(value = "/history", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+// Endpoint GET para retornar todo o histórico de conversões realizadas
+public ResponseEntity<List<ExchangeHistoryEntity>> getAllHistory(
+	@RequestParam(name = "formato", required = false, defaultValue = "json") String formato
+) {
+	List<ExchangeHistoryEntity> history = currencyService.getHistory();
 
-		MediaType mediaType = formato.equalsIgnoreCase("xml") ?
-			MediaType.APPLICATION_XML : MediaType.APPLICATION_JSON;
+	MediaType mediaType = formato.equalsIgnoreCase("xml") ?
+		MediaType.APPLICATION_XML : MediaType.APPLICATION_JSON;
 
-		return ResponseEntity
-			.ok()
-			.contentType(mediaType)
-			.body(history);
+	// Retorna o histórico no formato solicitado
+	return ResponseEntity
+		.ok()
+		.contentType(mediaType)
+		.body(history);
+}
+
+@DeleteMapping("/delete-exchange")
+// Endpoint DELETE que remove uma entrada do histórico pelo ID
+public ResponseEntity<Void> deleteExchange(@RequestParam Long idExchange) {
+	currencyService.deleteFromHistory(idExchange);
+	return ResponseEntity.noContent().build(); // Retorna status 204 - No Content
+}
+
+@PutMapping(value = "/update-timestamp", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+// Endpoint PUT que atualiza o timestamp de uma entrada do histórico
+public ResponseEntity<Object> updateTimestamp(
+	@RequestParam Long id,
+	@RequestParam String newTimestamp,
+	@RequestParam(name = "formato", required = false, defaultValue = "json") String formato
+) {
+	boolean updated = currencyService.updateTimestamp(id, newTimestamp);
+
+	MediaType mediaType = formato.equalsIgnoreCase("xml") ?
+		MediaType.APPLICATION_XML : MediaType.APPLICATION_JSON;
+
+	if(updated) {
+		Map<String, String> response = Map.of("message", "Timestamp updated successfully");
+		return ResponseEntity.ok().contentType(mediaType).body(response);
+	} else {
+		Map<String, String> response = Map.of("message", "Entry not found");
+		return ResponseEntity.status(404).contentType(mediaType).body(response);
+	}
+}
+
+@GetMapping(value = "/download", produces = { "application/json", "application/xml" })
+// Endpoint GET que permite baixar o histórico em JSON ou XML
+public ResponseEntity<String> downloadJsonOrXml(@RequestHeader("Accept") String accept) throws IOException {
+	List<ExchangeHistoryEntity> entities = currencyService.getHistory();
+
+	// Constrói a estrutura Protobuf ExchangeHistoryList com os dados
+	ExchangeHistoryList.Builder listBuilder = ExchangeHistoryList.newBuilder();
+	for (ExchangeHistoryEntity entity : entities) {
+		ExchangeHistoryItem item = ExchangeHistoryItem.newBuilder()
+				.setId(entity.getId())
+				.setFromCurrency(entity.getFromCurrency())
+				.setToCurrency(entity.getToCurrency())
+				.setAmount(entity.getAmount())
+				.setConvertedAmount(entity.getConvertedAmount())
+				.setTimestamp(entity.getTimestamp().toString())
+				.build();
+		listBuilder.addItems(item);
 	}
 
+	ExchangeHistoryList protoList = listBuilder.build();
+	String body;
+	String filename;
 
-	@GetMapping("/quote")
-	public Map<String, CurrencyEntity> getCurrencyQuotes(@RequestParam String pairs) throws IOException {
-    	return currencyService.getCurrencyQuotes(pairs);
+	if (accept.equals("application/xml")) {
+		// Se for XML: converte o Protobuf para JSON e depois para XML usando Jackson
+		ObjectMapper xmlMapper = new XmlMapper();
+		String json = JsonFormat.printer().includingDefaultValueFields().print(protoList);
+		JsonNode tree = new ObjectMapper().readTree(json);
+		body = xmlMapper.writeValueAsString(tree);
+		filename = "exchange_history.xml";
+	} else {
+		// Se for JSON: converte diretamente o Protobuf para JSON
+		body = JsonFormat.printer().includingDefaultValueFields().print(protoList);
+		filename = "exchange_history.json";
 	}
 
-	@DeleteMapping("/delete-exchange")
-	public ResponseEntity<Void> deleteExchange(@RequestParam Long idExchange) {
-		currencyService.deleteFromHistory(idExchange);
-		return ResponseEntity.noContent().build(); // HTTP 204
-	}
-
-	@PutMapping(value = "/update-timestamp", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-	public ResponseEntity<Object> updateTimestamp(
-		@RequestParam Long id,
-		@RequestParam String newTimestamp,
-		@RequestParam(name = "formato", required = false, defaultValue = "json") String formato
-	) {
-		boolean updated = currencyService.updateTimestamp(id, newTimestamp);
-
-		MediaType mediaType = formato.equalsIgnoreCase("xml") ?
-			MediaType.APPLICATION_XML : MediaType.APPLICATION_JSON;
-
-		if(updated) {
-			Map<String, String> response = Map.of("message", "Timestamp updated successfully");
-			return ResponseEntity.ok().contentType(mediaType).body(response);
-		} else {
-			Map<String, String> response = Map.of("message", "Entry not found");
-			return ResponseEntity.status(404).contentType(mediaType).body(response);
-		}
-	}
-
-    @GetMapping(value = "/download", produces = { "application/json", "application/xml" })
-    public ResponseEntity<String> downloadJsonOrXml(@RequestHeader("Accept") String accept) throws IOException {
-        List<ExchangeHistoryEntity> entities = currencyService.getHistory();
-
-        ExchangeHistoryList.Builder listBuilder = ExchangeHistoryList.newBuilder();
-        for (ExchangeHistoryEntity entity : entities) {
-            ExchangeHistoryItem item = ExchangeHistoryItem.newBuilder()
-                    .setId(entity.getId())
-                    .setFromCurrency(entity.getFromCurrency())
-                    .setToCurrency(entity.getToCurrency())
-                    .setAmount(entity.getAmount())
-                    .setConvertedAmount(entity.getConvertedAmount())
-                    .setTimestamp(entity.getTimestamp().toString())
-                    .build();
-            listBuilder.addItems(item);
-        }
-
-        ExchangeHistoryList protoList = listBuilder.build();
-        String body;
-        String filename;
-
-        if (accept.equals("application/xml")) {
-            // Use Jackson para converter a partir de JSON gerado pelo Protobuf
-            ObjectMapper xmlMapper = new XmlMapper();
-            String json = JsonFormat.printer().includingDefaultValueFields().print(protoList);
-            JsonNode tree = new ObjectMapper().readTree(json);
-            body = xmlMapper.writeValueAsString(tree);
-            filename = "exchange_history.xml";
-        } else {
-            body = JsonFormat.printer().includingDefaultValueFields().print(protoList);
-            filename = "exchange_history.json";
-        }
-
-        return ResponseEntity.ok()
-                .header("Content-Disposition", "attachment; filename=" + filename)
-                .body(body);
-    }
-
+	// Retorna o conteúdo como anexo para download
+	return ResponseEntity.ok()
+			.header("Content-Disposition", "attachment; filename=" + filename)
+			.body(body);
+}
 	
 }
+
