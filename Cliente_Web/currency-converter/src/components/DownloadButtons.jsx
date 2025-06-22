@@ -1,4 +1,3 @@
-import React from 'react';
 import { downloadJson, downloadXml } from '../services/currencyService';
 
 const DownloadButtons = () => {

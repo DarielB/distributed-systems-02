@@ -1,6 +1,3 @@
-// FormatSelector.jsx
-import React from 'react';
-
 const FormatSelector = ({ formato, setFormato }) => (
   <div className="form-group">
     <label>Formato de resposta:</label>
