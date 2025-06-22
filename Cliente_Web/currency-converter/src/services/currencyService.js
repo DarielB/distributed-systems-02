@@ -97,3 +97,12 @@ export const downloadXml = () =>
     responseType: 'blob',
     headers: { Accept: 'application/xml' },
   });
+
+/**
+ * Download do histórico em formato binário Protobuf (.pb)
+ */
+export const downloadProtobuf = () =>
+  axios.get(`${API_BASE}/download-protobuf`, {
+    responseType: 'blob',
+    headers: { Accept: 'application/x-protobuf' },
+  });

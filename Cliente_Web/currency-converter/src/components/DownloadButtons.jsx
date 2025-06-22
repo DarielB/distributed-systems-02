@@ -1,4 +1,5 @@
-import { downloadJson, downloadXml } from '../services/currencyService';
+import React from 'react';
+import { downloadJson, downloadXml, downloadProtobuf } from '../services/currencyService';
 
 const DownloadButtons = () => {
   const handleDownload = async (format) => {
@@ -14,6 +15,10 @@ const DownloadButtons = () => {
         case 'xml':
           response = await downloadXml();
           filename = 'exchange_history.xml';
+          break;
+        case 'protobuf':
+          response = await downloadProtobuf();
+          filename = 'exchange_history.pb';
           break;
         default:
           return;
@@ -36,6 +41,7 @@ const DownloadButtons = () => {
       <h3>Baixar histórico</h3>
       <button onClick={() => handleDownload('json')}>Baixar JSON</button>{' '}
       <button onClick={() => handleDownload('xml')}>Baixar XML</button>{' '}
+      <button onClick={() => handleDownload('protobuf')}>Baixar Protobuf</button>
     </div>
   );
 };
