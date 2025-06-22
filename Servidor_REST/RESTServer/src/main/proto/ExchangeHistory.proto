@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package com.example.protobuf;
+
+message ExchangeHistoryItem {
+  int64 id = 1;
+  string fromCurrency = 2;
+  string toCurrency = 3;
+  double amount = 4;
+  double convertedAmount = 5;
+  string timestamp = 6;
+}
+
+message ExchangeHistoryList {
+  repeated ExchangeHistoryItem items = 1;
+}

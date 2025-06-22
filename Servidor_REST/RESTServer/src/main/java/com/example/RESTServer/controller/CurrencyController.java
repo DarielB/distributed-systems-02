@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,6 +23,20 @@ import com.example.RESTServer.domain.entity.ExchangeHistoryEntity;
 import com.example.RESTServer.domain.request.ConvertCurrencyRequestDTO;
 import com.example.RESTServer.domain.response.ConvertCurrencyResponseDTO;
 import com.example.RESTServer.service.CurrencyService;
+
+
+import com.example.protobuf.ExchangeHistory.ExchangeHistoryItem;
+import com.example.protobuf.ExchangeHistory.ExchangeHistoryList;
+import com.google.protobuf.util.JsonFormat;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+
+
+
+
+
+
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -110,7 +125,43 @@ public ResponseEntity<ConvertCurrencyResponseDTO> convertCurrency(
 		}
 	}
 
+    @GetMapping(value = "/download", produces = { "application/json", "application/xml" })
+    public ResponseEntity<String> downloadJsonOrXml(@RequestHeader("Accept") String accept) throws IOException {
+        List<ExchangeHistoryEntity> entities = currencyService.getHistory();
 
+        ExchangeHistoryList.Builder listBuilder = ExchangeHistoryList.newBuilder();
+        for (ExchangeHistoryEntity entity : entities) {
+            ExchangeHistoryItem item = ExchangeHistoryItem.newBuilder()
+                    .setId(entity.getId())
+                    .setFromCurrency(entity.getFromCurrency())
+                    .setToCurrency(entity.getToCurrency())
+                    .setAmount(entity.getAmount())
+                    .setConvertedAmount(entity.getConvertedAmount())
+                    .setTimestamp(entity.getTimestamp().toString())
+                    .build();
+            listBuilder.addItems(item);
+        }
 
+        ExchangeHistoryList protoList = listBuilder.build();
+        String body;
+        String filename;
 
+        if (accept.equals("application/xml")) {
+            // Use Jackson para converter a partir de JSON gerado pelo Protobuf
+            ObjectMapper xmlMapper = new XmlMapper();
+            String json = JsonFormat.printer().includingDefaultValueFields().print(protoList);
+            JsonNode tree = new ObjectMapper().readTree(json);
+            body = xmlMapper.writeValueAsString(tree);
+            filename = "exchange_history.xml";
+        } else {
+            body = JsonFormat.printer().includingDefaultValueFields().print(protoList);
+            filename = "exchange_history.json";
+        }
+
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=" + filename)
+                .body(body);
+    }
+
+	
 }
