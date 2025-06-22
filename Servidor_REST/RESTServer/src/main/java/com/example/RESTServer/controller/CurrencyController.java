@@ -133,6 +133,32 @@ public ResponseEntity<Object> updateTimestamp(
 	}
 }
 
+@GetMapping(value = "/download-protobuf", produces = "application/x-protobuf")
+public ResponseEntity<byte[]> downloadProtobuf() {
+    List<ExchangeHistoryEntity> entities = currencyService.getHistory();
+
+    // Constrói a lista Protobuf com os dados do histórico
+    ExchangeHistoryList.Builder listBuilder = ExchangeHistoryList.newBuilder();
+    for (ExchangeHistoryEntity entity : entities) {
+        ExchangeHistoryItem item = ExchangeHistoryItem.newBuilder()
+            .setId(entity.getId())
+            .setFromCurrency(entity.getFromCurrency())
+            .setToCurrency(entity.getToCurrency())
+            .setAmount(entity.getAmount())
+            .setConvertedAmount(entity.getConvertedAmount())
+            .setTimestamp(entity.getTimestamp().toString())
+            .build();
+        listBuilder.addItems(item);
+    }
+
+    byte[] bytes = listBuilder.build().toByteArray();
+
+    return ResponseEntity.ok()
+        .header("Content-Disposition", "attachment; filename=exchange_history.pb")
+        .body(bytes);
+}
+
+
 @GetMapping(value = "/download", produces = { "application/json", "application/xml" })
 // Endpoint GET que permite baixar o histórico em JSON ou XML
 public ResponseEntity<String> downloadJsonOrXml(@RequestHeader("Accept") String accept) throws IOException {
