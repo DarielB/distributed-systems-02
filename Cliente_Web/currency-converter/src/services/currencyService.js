@@ -56,3 +56,16 @@ export const updateTimestamp = async (id, newTimestamp, formato = 'json') => {
     }
   );
 };
+
+export const downloadJson = () =>
+  axios.get(`${API_BASE}/download`, {
+    responseType: 'blob',
+    headers: { Accept: 'application/json' },
+  });
+
+export const downloadXml = () =>
+  axios.get(`${API_BASE}/download`, {
+    responseType: 'blob',
+    headers: { Accept: 'application/xml' },
+  });
+

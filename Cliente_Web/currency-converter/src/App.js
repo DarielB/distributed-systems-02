@@ -5,6 +5,7 @@ import CurrencyForm from './components/CurrencyForm';
 import ResultDisplay from './components/ResultDisplay';
 import HistoryTable from './components/HistoryTable';
 import FormatSelector from './components/FormatSelector';
+import DownloadButtons from './components/DownloadButtons';
 import { fetchHistory, convertCurrency, deleteExchange, updateTimestamp } from './services/currencyService';
 
 function App() {
@@ -74,6 +75,7 @@ const handleSaveTimestamp = async (id, newTimestamp) => {
       />
       {error && <p className="error">{error}</p>}
       <ResultDisplay result={result} />
+      <DownloadButtons />
       <HistoryTable history={history} onDelete={handleDelete} onSaveTimestamp={handleSaveTimestamp} />
       </center>
     </div>
