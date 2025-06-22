@@ -3,7 +3,9 @@ import { Picker } from '@react-native-picker/picker';
 import HistoricoConversoes from '../../components/historyConversions';
 import { ScrollView, View, Text, TextInput, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { obterHistorico, convertCurrency, apagarConversaoo, atualizarTimestamp } from '../../services/currencyService';
+import DownloadButtons from '../../components/DownloadButtons';
 const moedas = ['USD', 'EUR', 'BRL', 'GBP', 'JPY', 'AUD'];
+const formatos = ['json', 'xml'];
 
 const ConversorMoedas = () => {
 
@@ -13,6 +15,7 @@ const ConversorMoedas = () => {
     const [moedaOrigem, setMoedaOrigem] = useState('USD');
     const [historico, setHistorico] = useState<any[]>([]);
     const [moedaDestino, setMoedaDestino] = useState('BRL');
+    const [formato, setFormato] = React.useState('json');
 
     const onChanged = (text: string) => {
         // Substitui vírgula por ponto para manter consistência
@@ -27,7 +30,7 @@ const ConversorMoedas = () => {
 
     const carregarHistorico = async () => {
         try {
-            const data = await obterHistorico();
+            const data = await obterHistorico(formato);
             setHistorico(data);
         } catch (err) {
             setErro('Erro ao buscar o histórico.');
@@ -36,7 +39,7 @@ const ConversorMoedas = () => {
 
     const converterValores = async () => {
         try {
-            const res = await convertCurrency(moedaOrigem, moedaDestino, valor);
+            const res = await convertCurrency(moedaOrigem, moedaDestino, valor, formato);
             const strRes = `${res.originalAmount} ${res.from} = ${res.convertedAmount} ${res.to}`;
             setResultado(strRes);
             setErro('');
@@ -78,6 +81,18 @@ const ConversorMoedas = () => {
             />
             <Text style={styles.titulo}>Conversor de Moedas</Text>
 
+            <View style={styles.secao}>
+                <Text style={styles.label}>Formato:</Text>
+                <Picker
+                    selectedValue={formato}
+                    onValueChange={(itemValue) => setFormato(itemValue)}
+                    style={styles.picker}
+                >
+                    {formatos.map((m) => (
+                        <Picker.Item key={m} label={m} value={m} />
+                    ))}
+                </Picker>
+            </View>
             <View style={styles.secao}>
                 <Text style={styles.label}>De:</Text>
                 <Picker
@@ -130,7 +145,10 @@ const ConversorMoedas = () => {
                     <Text style={styles.textoErro}>{erro}</Text>
                 </View>
             )}
-            <HistoricoConversoes historico={historico} deletar={handleDelete} salvarTimestamp={novoTimestamp}/>
+
+            <DownloadButtons />
+            
+            <HistoricoConversoes historico={historico} deletar={handleDelete} salvarTimestamp={novoTimestamp} />
         </ScrollView>
     );
 };

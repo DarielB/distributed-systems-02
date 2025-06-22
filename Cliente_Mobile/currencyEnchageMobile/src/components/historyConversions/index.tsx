@@ -24,15 +24,15 @@ const HistoricoConversoes = (props: any) => {
     };
 
     const formatarData = (dataString: string) => {
-  const data = new Date(dataString);
-  const dia = String(data.getDate()).padStart(2, '0');
-  const mes = String(data.getMonth() + 1).padStart(2, '0');
-  const ano = String(data.getFullYear()).slice(2); // pega os dois últimos dígitos
-  const horas = String(data.getHours()).padStart(2, '0');
-  const minutos = String(data.getMinutes()).padStart(2, '0');
+        const data = new Date(dataString);
+        const dia = String(data.getDate()).padStart(2, '0');
+        const mes = String(data.getMonth() + 1).padStart(2, '0');
+        const ano = String(data.getFullYear()).slice(2); // pega os dois últimos dígitos
+        const horas = String(data.getHours()).padStart(2, '0');
+        const minutos = String(data.getMinutes()).padStart(2, '0');
 
-  return `${dia}/${mes}/${ano} ${horas}:${minutos}`;
-};
+        return `${dia}/${mes}/${ano} ${horas}:${minutos}`;
+    };
 
     return (
         <View style={styles.container}>
@@ -47,51 +47,48 @@ const HistoricoConversoes = (props: any) => {
                 <Text style={styles.headerCell}>Ações</Text>
             </View>
 
-            <ScrollView>
-                {historico.map((entry: any) => (
-                    <View key={entry.id} style={styles.tableRow}>
-                        <Text style={[styles.cell, styles.smallColumn]}>{entry.fromCurrency}</Text>
-                        <Text style={[styles.cell, styles.smallColumn]}>{entry.toCurrency}</Text>
-                        <Text style={styles.cell}>{entry.amount}</Text>
-                        <Text style={styles.cell}>{entry.convertedAmount}</Text>
-
-                        <View style={styles.cell}>
-                            {editId === entry.id ? (
-                                <TextInput
-                                    style={styles.input}
-                                    value={editTimestamp}
-                                    onChangeText={setEditTimestamp}
-                                    placeholder="YYYY-MM-DD HH:MM"
-                                />
-                            ) : (
-                                <Text>{formatarData(entry.timestamp)}</Text>
-                            )}
-                        </View>
-
-                        <View style={styles.cell}>
-                            {editId === entry.id ? (
-                                <View style={styles.buttonGroup}>
-                                    <TouchableOpacity style={styles.button} onPress={handleSaveClick}>
-                                        <Text style={styles.buttonText}>Salvar</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity style={styles.button} onPress={handleCancelClick}>
-                                        <Text style={styles.buttonText}>Cancelar</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            ) : (
-                                <View style={styles.buttonGroup}>
-                                    <TouchableOpacity style={styles.button} onPress={() => handleEditClick(entry)}>
-                                        <Text style={styles.buttonText}>Editar</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity style={styles.button} onPress={() => deletar(entry.id)}>
-                                        <Text style={styles.buttonText}>Excluir</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            )}
-                        </View>
+            {historico.map((entry: any) => (
+                <View key={entry.id} style={styles.tableRow}>
+                    <Text style={[styles.cell, styles.smallColumn]}>{entry.fromCurrency}</Text>
+                    <Text style={[styles.cell, styles.smallColumn]}>{entry.toCurrency}</Text>
+                    <Text style={styles.cell}>{entry.amount}</Text>
+                    <Text style={styles.cell}>{entry.convertedAmount}</Text>
+                    <View style={styles.cell}>
+                        {editId === entry.id ? (
+                            <TextInput
+                                style={styles.input}
+                                value={editTimestamp}
+                                onChangeText={setEditTimestamp}
+                                placeholder="YYYY-MM-DD HH:MM"
+                            />
+                        ) : (
+                            <Text>{formatarData(entry.timestamp)}</Text>
+                        )}
                     </View>
-                ))}
-            </ScrollView>
+
+                    <View style={styles.cell}>
+                        {editId === entry.id ? (
+                            <View style={styles.buttonGroup}>
+                                <TouchableOpacity style={styles.button} onPress={handleSaveClick}>
+                                    <Text style={styles.buttonText}>Salvar</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.button} onPress={handleCancelClick}>
+                                    <Text style={styles.buttonText}>Cancelar</Text>
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <View style={styles.buttonGroup}>
+                                <TouchableOpacity style={styles.button} onPress={() => handleEditClick(entry)}>
+                                    <Text style={styles.buttonText}>Editar</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.button} onPress={() => deletar(entry.id)}>
+                                    <Text style={styles.buttonText}>Excluir</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
+                    </View>
+                </View>
+            ))}
         </View>
     );
 }
